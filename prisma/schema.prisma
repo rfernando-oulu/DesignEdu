@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+enum UserType {
+  USER
+  PROJECT_MANAGER
+  DESIGNER
+  PROGRAMMER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clerkId String     @unique
+  email   String     @unique
+  entries Progress[]
+
+  groupId   String?
+  userGroup UserGroup? @relation(fields: [groupId], references: [id])
+
+  userType UserType @default(PROJECT_MANAGER)
+
+  @@index([groupId]) // Added index manually
+}
+
+model Progress {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  week    Int
+  content Json // Using JSON datatype to store title, description, and urls
+
+  @@index([userId])
+}
+
+model UserGroup {
+  id          String @id @default(uuid())
+  email       String @unique
+  groupNumber Int
+  users       User[]
+}
